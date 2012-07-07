@@ -29,6 +29,27 @@
 #define UMODE_OPER	0x004
 #define UMODE_WALLOPS	0x008
 
+#define CAP_CAP		0x00001
+#define CAP_QS		0x00002
+#define CAP_EX		0x00004
+#define CAP_CHW		0x00008
+#define CAP_IE		0x00010
+#define CAP_EOB		0x00020
+#define CAP_KLN		0x00040
+#define CAP_GLN		0x00080
+#define CAP_TS6		0x00100
+#define CAP_ZIP		0x00200
+#define CAP_ENC		0x00400
+#define CAP_KNOCK	0x00800
+#define CAP_TB		0x01000
+#define CAP_UNKLN	0x02000
+#define CAP_HOPS	0x04000
+#define CAP_CLUSTER	0x08000
+#define CAP_ENCAP	0x10000
+#define CAP_TBURST	0x20000
+#define CAP_LAST	CAP_TBURST
+#define CERVIXES_CAPS	(CAP_CAP|CAP_QS|CAP_EX|CAP_IE|CAP_EOB|CAP_KLN|CAP_GLN|CAP_TS6|CAP_UNKLN|CAP_HOPS|CAP_CLUSTER|CAP_ENCAP)
+
 /* structs */
 
 struct _Server

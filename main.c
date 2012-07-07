@@ -28,7 +28,37 @@
 
 extern char *optarg;
 
+int8_t caps_init(void);
+
 int main(int argc, char **argv)
 {
 
+}
+
+int8_t caps_init()
+{
+	char *capsstr[CAP_LAST + 1];
+
+	memset(capsstr, 0, (sizeof(char *) * CAP_LAST + 1));
+
+	capsstr[CAP_CAP] = "";
+	capsstr[CAP_QS] = "QS";
+	capsstr[CAP_EX] = "EX";
+	capsstr[CAP_CHW] = "CHW";
+	capsstr[CAP_IE] = "IE";
+	capsstr[CAP_EOB] = "EOB";
+	capsstr[CAP_KLN] = "KLN";
+	capsstr[CAP_GLN] = "GLN";
+	capsstr[CAP_TS6] = "TS6";
+	capsstr[CAP_ZIP] = "ZIP";
+	capsstr[CAP_ENC] = "ENC";
+	capsstr[CAP_KNOCK] = "KNOCK";
+	capsstr[CAP_TB] = "TB";
+	capsstr[CAP_UNKLN] = "UNKLN";
+	capsstr[CAP_HOPS] = "HOPS";
+	capsstr[CAP_CLUSTER] = "CLUSTER";
+	capsstr[CAP_ENCAP] = "ENCAP";
+	capsstr[CAP_TBURST] = "TBURST";
+
+	return(0);
 }
