@@ -1,0 +1,12 @@
++++ Changes from version 0.3 to version 0.4
+ * Now using autoconf to determine if a couple of things exist
+ * Portability fix: don't try to use reallocf() if we don't have it
+ * New macros have been created, further limiting the necesity of API users to touch the MSocket structure themselves
+ * Make the connect() timeout configurable on a per-socket basis
+
++++ Changes from version 0.2 to version 0.3
+ * Time-out connect() sockets manually during our housekeeping routine
+ * Fixed a typo bug in the DNS resolver
+
++++ Changes from version 0.1 to version 0.2
+ * Fixed a whole bunch of bugs

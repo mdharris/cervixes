@@ -21,44 +21,51 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <errno.h>
 #include <ctype.h>
 #include <pwstor.h>
+#include <signal.h>
 #include "inilib/inilib.h"
+#include <msocket.h>
 #include "cervixes.h"
 
 extern char *optarg;
 
-int8_t caps_init(void);
+uint16_t *status;
+
+static int8_t init_caps(void);
 
 int main(int argc, char **argv)
 {
+	time_t last;
 
-}
+	status = 0;
+	signal(SIGTSTP, SIG_IGN);
+	signal(SIGHUP, sh_reboot);
+	signal(SIGINT, sh_die);
+	signal(SIGKILL, sh_die);
+	signal(SIGTERM, sh_die);
 
-int8_t caps_init()
-{
-	char *capsstr[CAP_LAST + 1];
+	init_caps();
+	init_to();
+	if (lms_init((config->debugmode > 0) ? 1 : 0) != 0)
+	{
+		return(1);
+	}
+	init_database();
+	status |= STATUS_INITIALIZED;
 
-	memset(capsstr, 0, (sizeof(char *) * CAP_LAST + 1));
-
-	capsstr[CAP_CAP] = "";
-	capsstr[CAP_QS] = "QS";
-	capsstr[CAP_EX] = "EX";
-	capsstr[CAP_CHW] = "CHW";
-	capsstr[CAP_IE] = "IE";
-	capsstr[CAP_EOB] = "EOB";
-	capsstr[CAP_KLN] = "KLN";
-	capsstr[CAP_GLN] = "GLN";
-	capsstr[CAP_TS6] = "TS6";
-	capsstr[CAP_ZIP] = "ZIP";
-	capsstr[CAP_ENC] = "ENC";
-	capsstr[CAP_KNOCK] = "KNOCK";
-	capsstr[CAP_TB] = "TB";
-	capsstr[CAP_UNKLN] = "UNKLN";
-	capsstr[CAP_HOPS] = "HOPS";
-	capsstr[CAP_CLUSTER] = "CLUSTER";
-	capsstr[CAP_ENCAP] = "ENCAP";
-	capsstr[CAP_TBURST] = "TBURST";
+	while (!(status & STATUS_QUITTING))
+	{
+		if (time(NULL) > last)
+		{
+			to_check();
+			last = time(NULL);
+		}
+		lms_
+		/* milisecond level granularity should be sane. */
+		usleep(1000);
+	}
 
 	return(0);
 }

@@ -18,9 +18,66 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdin.h>
+#include <stdint.h>
+#include <unistd.h>
+#include <errno.h>
 #include <string.h>
 #include "cervixes.h"
+
+struct _Capab
+{
+	uint32_t i;
+	char name[32];
+};
+typedef struct _Capab IRCCap;
+
+IRCCap *_cap_first;
+
+int init_caps()
+{
+	/*
+         * capsstr[CAP_CAP] = "";
+         * capsstr[CAP_QS] = "QS";
+         * capsstr[CAP_EX] = "EX";
+         * capsstr[CAP_CHW] = "CHW";
+         * capsstr[CAP_IE] = "IE";
+         * capsstr[CAP_EOB] = "EOB";
+         * capsstr[CAP_KLN] = "KLN";
+         * capsstr[CAP_GLN] = "GLN";
+         * capsstr[CAP_TS6] = "TS6";
+         * capsstr[CAP_ZIP] = "ZIP";
+         * capsstr[CAP_ENC] = "ENC";
+         * capsstr[CAP_KNOCK] = "KNOCK";
+         * capsstr[CAP_TB] = "TB";
+         * capsstr[CAP_UNKLN] = "UNKLN";
+         * capsstr[CAP_HOPS] = "HOPS";
+         * capsstr[CAP_CLUSTER] = "CLUSTER";
+         * capsstr[CAP_ENCAP] = "ENCAP";
+         * capsstr[CAP_TBURST] = "TBURST";
+	 */
+	_cap_first = (IRCCap *)NULL;
+
+	return(0);
+}
+
+int cap_add(uint32_t idx, char *txt)
+{
+	IRCCap *new;
+	IRCCap *cptr;
+
+	if (!txt)
+	{
+		return(-1);
+	}
+
+	if (cap_findidx(idx) || cap_findtxt(txt))
+	{
+	}
+
+	if (!_cap_first)
+	{
+	}
+}
 
 int user_add()
 {

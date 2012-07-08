@@ -1,0 +1,108 @@
+**********************************************************************************************************************************************************************************************************************
+libmsocket is pretty easy to use.  The entire thing is based on the MSocket structure, which is documented in the msocket.h header file.  Generally speaking,
+though, you won't have to mess with the structure itself with a few exceptions:
+You'll need to set ``remotehost'' and ``remoteport'' if you want to connect out, and ``localhost'' and ``localport'' to listen.  You can also set localhost on an outbound
+socket to have it bind to a specific address.  You'll also need to set options (see LMSOPTION_* defines in msocket.h) in the ``opts'' member.  These should be done 
+after calling lms_socket_create(), but before calling any other functions like lms_socket_iconnect() or lms_socket_ilisten().  After that has been called, you'll
+also want to set the func_p member, which needs to be a pointer to a function which returns void and takes the MSocket * pointer as its only argument.  
+
+To use libmsocket, you'll need to #include <msocket.h> after including a few other system header files - at least sys/types.h is probably necessary, but possibly some others
+depending on your platform.  You'll need to link against -lmsocket, -lcrypto, -lssl, and -levent.  You'll need, obviously, appropriate -I and -L flags to gcc, or
+whatever your compiler uses for include and library directories.  
+
+**********************************************************************************************************************************************************************************************************************
+Dependencies:
+To use libmsocket, you'll need OpenSSL and libevent.  OpenSSL is used for the SSL connectivity, and a few other random things, such as for the PRNG for evdns.  
+libevent is the heart of the mux and provides async DNS functionality as well, we simply abstract it.  libevent also abstracts the best I/O multiplexing method
+for your operating system, meaning that libmsocket will take advantage of this.  (This means kqueue on FreeBSD, epoll on Linux, etc, but it can fall back to anachronisms
+like select() if your system doesn't offer anything better, too.  I'm quite glad that Neils Provos and Nick Mathewson wrote this code already for us.) 
+
+**********************************************************************************************************************************************************************************************************************
+The basics of writing code using libmsocket:
+
+The first thing you've got to do - always - is call lms_init().  If it returns non-zero, you have a problem and should investigate via errno or a debugger.  
+Under normal circumstances, lms_init() won't return non-zero.  Things like a broken OpenSSL library, failure to allocate memory (!), and other such
+very bad conditions can cause it to do so, but it's not something you can simply bork up of your own accord - if it fails, there's something really wrong.
+
+Once that's out of the way, you can go around creating sockets.  The most basic way to do this is as follows:
+	MSocket *m;
+	lms_init(1);		/* Specifying 1 as the argument to lms_init() means it'll printf() an error, specifying 0 means it will not */
+	m = lms_socket_create(LMSTYPE_STREAM4);
+	if (!m) { return(-1); }
+	/* Put an IP address into remotehost and/or localhost members here!  These members of ``m'' will already be pointers to memory buffers big enough to hold an IPv4 address, since you specified LMSTYPE_STREAM4. */
+	/* Set remoteport and/or localport here. */
+	if (lms_socket_iconn(m) < 0) { return(-1); }
+	if (lms_mux_addfd(m, 0, 0) < 0) { return(-1); }	/* Note that the latter two arguments are 0 - this is acceptable if the first argument is a valid MSocket pointer. */
+	m->func_p = YourCallBack;
+
+Once that's done with, you've got a socket that is connecting or connected, and will be watched by the mux.  When some data comes in, it'll be recv()'d into m->recvQ, and you can see how much data
+is in there by looking at m->recvQ_len.  The function ``YourCallBack'' will be called when there's data in recvQ, and can simply return if there's not enough data to be useful yet.  Since func_p
+can be called before a complete request is received (libmsocket is completely independent of the application protocol), you should take care to ensure that the data in recvQ is fully useful before
+you try using it.  
+When your callback function has finished processing recvQ, it should call lms_socket_freerq() on the MSocket pointer:
+	lms_socket_freerq(m);
+This will free up recvQ, and YourCallBack will be called again when data is available.  
+
+To send data, you'll want to use lms_socket_appendq(), which will append data to the sendQ.  If you need to send the data right away, you can call the LMS_SendQueue() macro, such as:
+	lms_socket_appendq(m, buffer, buffer_length);	/* buffer is an (unsigned char *) buffer containing the data to append to the sendQ, and buffer_length is the number of bytes to append */
+	LMS_SendQueue(m);	/* Don't forget to specify the argument of... itself. */
+
+You don't have to call LMS_SendQueue() though, sendQs get sent out pretty automagically every second as long as you're calling lms_loop().  
+
+Once you're set up, just call lms_loop() as often as possible, and it'll check the mux, send out any sendQs that are ready to send, clean up dead sockets, etc.  One thing that's important to note
+is that you should not expect an MSocket pointer to always be valid - if a socket dies, it'll get closed and the structure will be destroyed.  Generally speaking, just having func_p set appropriately
+on your sockets will cause it to be called when data is available on a valid socket.  If you set func_p on a listen socket, it will never be called, but it will be inherited by sockets which are accept()'d
+from that listen socket.  
+If you wish to know when a socket has closed at the remote end, you must set func_e on the socket.  The very least you should do in that function is call lms_socket_destroy() on the socket to close the fd
+and free all associated memory.  func_e has the same prototype as func_p does except that it returns int rather than void.  Likewise, if you wish to know when a new socket has been created because accept()
+was called on a listener, you should set func_a.  func_a should point to a function that has the same prototype as func_p, returning void.  
+
+One thing worth noting regarding func_a is that ONLY the func_a function of a listen socket will ever be called, but the parameter with which it will be called is the pointer to the MSocket object which was
+accepted, so the parameter to your func_a function will be a connection originating from the remote end-point.  Its remotehost and remoteport members will be set appropriately.  
+In short, setting func_a on a socket which is not a listen() socket is pointless and will never be called, but the parameter which will be passed to your func_a function will never be a listen socket itself,
+it will be the socket which was accept()'d off of the listen socket.  
+
+A few macros can be used to set options, requiring even less interaction with the MSocket structure itself.  In these, ``s'' is the MSocket pointer.
+LMS_SetTimeout(s, t) - t is an unsigned integer value representing the length of time to wait between calling connect() and declaring that it has not failed if the socket is not connected
+LMS_SetBlocking(s) - Must be set before calling lms_socket_iconn() or such
+LMS_SetAllowIdle(s) - Can be set any time
+LMS_SetCWait(s) - Must be set before calling lms_socket_iconn() or such
+LMS_SetSSL(s) - Must be set immediately after lms_socket_create() is called
+LMS_SetSSLUnClean(s) - Must be set immediately after setting the SSL option
+Additional macros can be seen in msocket.h.  
+
+For more details on how this all works, check out Example-server.c, which contains a program which simply listens for connections on 127.0.0.1 and echos anything sent to it to stdout, then exits when ^C is pressed.
+For even more detailed example code, check out Example-client.c, which grabs google's main page.  
+
+**********************************************************************************************************************************************************************************************************************
+What doesn't work (yet!):
+
+SSL connectivity is mostly working, but doesn't yet load a keystore or anything fancy like that.  It doesn't validate certificates at all, in fact, so there's some work to be done there.  
+UDP sockets don't work at all yet.  
+UNIX domain sockets work, but some of the code was very dependent on another project I'm working on, and I haven't had time to port it over to this library yet.  It's an easy fix, though.  
+Beyond that, everything's pretty good.  The mux and dns code seem to be pretty solid, in addition to the basic socket code, and since dns uses libevent as well, you don't need to worry
+about finding another async dns library - it's included here and meshes with MSockets (see lms_dns_findrev() for an example of how nicely it integrates.)
+
+**********************************************************************************************************************************************************************************************************************
+Advanced programming:
+
+If you need to check what version of libmsocket you're running against, you can call lms_version_int() and it will return an integer representing the version.  If you want to check at compile time, you can check
+the LMS_VERSION (a string) and LMS_VERSION_INT (an integer) which are defined in msocket.h.  For example, if you wished to compare what version you were compiled against versus the version you're running now,
+you could compare the value of LMS_VERSION_INT and the return value of lms_version_int().  lms_version() will return a string containing the version number in a pretty-printable format.  
+
+To use the throttling utilities, you'll need to call lms_throttle_setbad() to tell the throttling API that a client sent bad authentication credentials.  The only argument to lms_throttle_setbad() is an MSocket
+pointer.  You can then check if an IP address should be penalized or not by calling lms_throttle_check(), to which the only argument is an in_addr_t (use inet_addr() to get this value from a dotted-quad string)
+representation of the IP address you wish to check.  If it returns >0, then the client should be throttled, otherwise not.  The throttling utilities won't do anything if configure was not run with the
+--enable-throttling argument to enable compiling in the throttle code.  The API will be the same, but the functions will not do anything and no memory will be used for storing throttle data, nor CPU cycles used
+every second to check for throttle expirations in lms_loop().  
+
+If you wish to use the utility functions which will be documented here at a later time, you must also include msocketutils.h.  This includes some useful utility functions such as Base64 encoding/decoding,
+some functions for working with password storage (using SHA256 and an 8byte salt, which is vastly more secure than a lot of applications nowadays use because of weaknesses in other hashing algorithms and
+the ability to apply rainbow tables if a salt isn't utilized), a function to write your pid to a file, and other random stuff.  Some of these functions are needed by libmsocket internally, while others
+are just provided as a useful convenience for libmsocket users.  
+
+Here, I'll talk about using Abstract objects for DNS lookups and stuff.  I haven't gotten around to documenting this yet, but it's pretty straight forward.  Check out the abstract structure
+in msocket.h and the lms_dns_lookup() function in dns.c for more information on how that works.  In the meantime, if you want a brief example of looking up an IP address and then connecting to it,
+check out Example-client.c
+
+**********************************************************************************************************************************************************************************************************************

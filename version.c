@@ -18,7 +18,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdin.h>
+#include <stdint.h>
 #include <string.h>
 #include "cervixes.h"
 
@@ -37,39 +37,4 @@ char *cervixes_version()
 	snprintf(v, len, "cervixes-%s", CERVIXES_VERSION);
 
 	return(v);
-}
-
-/*
-#define CAP_CAP         0x00001
-#define CAP_QS          0x00002
-#define CAP_EX          0x00004
-#define CAP_CHW         0x00008
-#define CAP_IE          0x00010
-#define CAP_EOB         0x00020
-#define CAP_KLN         0x00040
-#define CAP_GLN         0x00080
-#define CAP_TS6         0x00100
-#define CAP_ZIP         0x00200
-#define CAP_ENC         0x00400
-#define CAP_KNOCK       0x00800
-#define CAP_TB          0x01000
-#define CAP_UNKLN       0x02000
-#define CAP_HOPS        0x04000
-#define CAP_CLUSTER     0x08000
-#define CAP_ENCAP       0x10000
-#define CAP_TBURST      0x20000
-*/
-
-char *cervixes_capstr(uint32_t caps)
-{
-	char *c;
-	size_t len;
-
-	len = 1;
-
-	c = (char *)malloc(len);
-	memset(c, 0, len);
-	snprintf(c, len, "");
-
-	return(c);
 }

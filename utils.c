@@ -17,10 +17,20 @@
 */
 
 #include <stdio.h>
-#include <stdint.h>
 #include <stdlib.h>
-#include <unistd.h>
+#include <stdint.h>
 #include <string.h>
-#include <ctype.h>
 #include "cervixes.h"
 
+inline char *fmtdt(const char *style, size_t len)
+{
+	char *dstr;
+	const time_t *utime;
+
+	dstr = (char *)malloc(len);
+	if (!dstr) { return((char *)NULL); }
+	memset(dstr, 0, len);
+	utime = (const time_t *)time((time_t)NULL);
+	strftime(dstr, len, style, localtime((const time_t *)&utime));
+	return(dstr);
+}

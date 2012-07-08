@@ -17,10 +17,31 @@
 */
 
 #include <stdio.h>
-#include <stdint.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <unistd.h>
+#include <errno.h>
 #include <string.h>
-#include <ctype.h>
+#include <event2/event.h>
+#include <msocket.h>
 #include "cervixes.h"
 
+struct event_base *cx_base;
+
+static void levlog(int severity, const char *msg);
+
+int init_network()
+{
+	event_set_log_callback(levlog);
+	cx_base = event_base_new();
+}
+
+void levlog(int severity, const char *msg)
+{
+	if (severity < EVENT_LOG_WARN)
+	{
+		return;
+	}
+
+	return;
+}
