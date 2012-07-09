@@ -135,10 +135,20 @@ typedef struct _Memo SVCMemo;
 #define machdt()		fmtdt("%Y%m%d%H%M%S", 16);
 #define prtdt()			fmtdt("[%Y-%m-%d %H:%M:%S]", 24);
 
+/* conf.c */
+extern char *cxconf(char *search);
+extern int init_conf(char *file);
+extern void clear_conf(void);
+
 /* dl.c */
 
 /* irc.c */
-int init_caps(void);
+extern int init_irc(void);
+extern int cap_add(uint32_t idx, char *txt);
+extern int user_add(char *uid, char *nick, char *user, char *host, char *realname, IRCServer *server);
+extern int server_add(char *sid, char *servername, char *description, IRCServer *uplink);
+extern int user_rem(char *uid, char *nick);
+extern int server_rem(char *sid, char *servername);
 
 /* main.c */
 extern char *capsstr[CAP_LAST + 1];

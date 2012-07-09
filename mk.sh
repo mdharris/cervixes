@@ -25,7 +25,7 @@ SLIBS='-lm -lcrypto -lssl -lpwstor -levent'
 
 set +e
 
-cflist='database dl irc main network to utils version'
+cflist='conf database dl irc main network to utils version'
 
 oflist=''
 for cfile in $cflist ; do

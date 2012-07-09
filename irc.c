@@ -28,12 +28,17 @@ struct _Capab
 {
 	uint32_t i;
 	char name[32];
+
+	struct _Capab *next;
+	struct _Capab *prev;
 };
 typedef struct _Capab IRCCap;
 
-IRCCap *_cap_first;
+static IRCCap *_cap_first;
+static IRCUser *_user_first;
+static IRCServer *_user_first;
 
-int init_caps()
+int init_irc()
 {
 	/*
          * capsstr[CAP_CAP] = "";
@@ -56,6 +61,8 @@ int init_caps()
          * capsstr[CAP_TBURST] = "TBURST";
 	 */
 	_cap_first = (IRCCap *)NULL;
+	_user_first = (IRCUser *)NULL;
+	_server_first = (IRCServer *)NULL;
 
 	return(0);
 }
@@ -63,38 +70,60 @@ int init_caps()
 int cap_add(uint32_t idx, char *txt)
 {
 	IRCCap *new;
-	IRCCap *cptr;
+	register IRCCap *cptr;
 
 	if (!txt)
 	{
 		return(-1);
 	}
 
-	if (cap_findidx(idx) || cap_findtxt(txt))
+	if (_cap_first)
 	{
+		cptr = _cap_first;
+		while (cptr)
+		{
+			if ((cptr->i == idx) || (strncmp(txt, cptr->name, 32) == 0))
+			{
+				return(0);
+			}
+			cptr = cptr->next;
+		}
 	}
+
+	new = (IRCCap *)malloc(sizeof(IRCCap));
+	if (!new) { return(-1); }
+	memset(new, 0, sizeof(IRCCap));
 
 	if (!_cap_first)
 	{
+		_cap_first = new;
 	}
 }
 
-int user_add()
+int user_add(char *uid, char *nick, char *user, char *host, char *realname, IRCServer *server)
 {
 
 }
 
-int user_rem()
+int user_rem(char *uid, char *nick)
+{
+	if (!uid && !nick)
+	{
+		errno = EINVAL;
+		return(-1);
+	}
+}
+
+int server_add(char *sid, char *servername, char *description, IRCServer *uplink)
 {
 
 }
 
-int server_add()
+int server_rem(char *sid, char *servername)
 {
-
-}
-
-int server_rem()
-{
-
+	if (!sid && !servername)
+	{
+		errno = EINVAL;
+		return(-1);
+	}
 }

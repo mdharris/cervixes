@@ -22,26 +22,47 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
-#include <event2/event.h>
 #include <msocket.h>
 #include "cervixes.h"
 
-struct event_base *cx_base;
-
-static void levlog(int severity, const char *msg);
+static int _cx_sockerr(MSocket *m);
+static int _cx_sockaccept(MSocket *m);
 
 int init_network()
 {
+	MSocket *l;
+
 	event_set_log_callback(levlog);
 	cx_base = event_base_new();
-}
-
-void levlog(int severity, const char *msg)
-{
-	if (severity < EVENT_LOG_WARN)
+	if (lms_init((config->debugmode > 0) ? 1 : 0) != 0)
 	{
-		return;
+		return(-1);
 	}
 
-	return;
+	l = lms_socket_create(LMSTYPE_LISTEN4);
+	if (!l) { fprintf(stdout, "lms_socket_create(): %s\n", strerror(errno)); return(-1); }
+	/* if you want to enable vhosting support, this would be set.
+        snprintf(l->localhost, LMS_LEN_V4ADDR, "127.0.0.1");
+	*/
+	l->localport = stringtoint(cxconf("myport"));
+	if (lms_socket_ilisten(l) < 0) { fprintf(stdout, "lms_socket_ilisten(): %s\n", strerror(errno)); return(-1); }
+	l->func_p = cx_sock;
+	l->func_a = cx_sockaccept;
+	if (lms_mux_addfd(l, -1, 0) < 0) { fprintf(stdout, "lms_mux_addfd(): %s\n", strerror(errno)); return(-1); }
+
+	return(0);
+}
+
+int _cx_sockerr(MSocket *m)
+{
+	if (!m) { errno = EINVAL; return(-1); }
+
+	/* fprintf(stdout, "[LMS] Disconnect from %s:%i\n", m->remotehost, m->remoteport); */
+	return(lms_socket_destroy(m));
+}
+
+int _cx_sockaccept(MSocket *m)
+{
+	m->func_e = _cx_sockerr;
+	return(0);
 }

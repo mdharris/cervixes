@@ -33,7 +33,8 @@ extern char *optarg;
 
 uint16_t *status;
 
-static int8_t init_caps(void);
+static void sh_die(int s);
+static void sh_reboot(int s);
 
 int main(int argc, char **argv)
 {
@@ -46,13 +47,11 @@ int main(int argc, char **argv)
 	signal(SIGKILL, sh_die);
 	signal(SIGTERM, sh_die);
 
-	init_caps();
-	init_to();
-	if (lms_init((config->debugmode > 0) ? 1 : 0) != 0)
-	{
-		return(1);
-	}
-	init_database();
+	init_conf("cervixes.ini");		/* read our config file first */
+	init_to();				/* simple */
+	init_irc();				/* simple */
+	init_network();				/* complex */
+	init_database();			/* complex */
 	status |= STATUS_INITIALIZED;
 
 	while (!(status & STATUS_QUITTING))
@@ -62,10 +61,25 @@ int main(int argc, char **argv)
 			to_check();
 			last = time(NULL);
 		}
-		lms_
+		lms_loop();
 		/* milisecond level granularity should be sane. */
 		usleep(1000);
 	}
 
 	return(0);
+}
+
+void sh_die(int s)
+{
+	SigCnt++;
+	if (SigCnt >= 3)
+	{
+		exit(3);
+	}
+	status |= STATUS_QUITTING;
+}
+
+void sh_reboot(int s)
+{
+
 }
