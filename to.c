@@ -171,6 +171,6 @@ void _to_del(To *tptr)
 	}
 	if (tptr->prev && !tptr->next)
 	{
-		tptr->prev->next = (to *)NULL;
+		tptr->prev->next = (To *)NULL;
 	}
 }

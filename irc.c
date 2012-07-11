@@ -38,6 +38,8 @@ static IRCCap *_cap_first;
 static IRCUser *_user_first;
 static IRCServer *_user_first;
 
+static void _cap_rem(IRCCap *cptr);
+
 int init_irc()
 {
 	/*
@@ -98,6 +100,74 @@ int cap_add(uint32_t idx, char *txt)
 	{
 		_cap_first = new;
 	}
+}
+
+int cap_rem(uint32_t idx)
+{
+	IRCCap *cptr;
+	IRCCap *tcptr;
+
+	if (!_cap_first)
+	{
+		return(-1);
+	}
+	cptr = _cap_first;
+	while (cptr)
+	{
+		tcptr = cptr->next;
+
+		if (cptr->i == idx)
+		{
+			_cap_rem(cptr);
+		}
+
+		cptr = tcptr;
+	}
+
+	return(0);
+}
+
+void _cap_rem(IRCCap *cptr)
+{
+	if (_cap_first == cptr)
+	{
+		if (cptr->next)
+			_cap_first = cptr->next;
+		}
+		else
+		{
+			_cap_first = (IRCCap *)NULL;
+		}
+	}
+
+	if (cptr->next && cptr->prev)
+	{
+		cptr->next->prev = cptr->prev;
+		cptr->prev->next = cptr->next;
+	}
+	if (cptr->next && !cptr->prev)
+	{
+		cptr->next->prev = (IRCCap *)NULL;
+	}
+	if (cptr->prev && !cptr->next)
+	{
+		cptr->prev->next = (IRCCap *)NULL;
+	}
+}
+
+char *cap_getstr(uint32_t list)
+{
+	char *capstr;
+	char tmpstr[512];
+
+	capstr = (char *)malloc(512);
+	if (!capstr)
+	{
+		return((char *)NULL);
+	}
+	memset(capstr, 0, 512);
+
+	return(capstr);
 }
 
 int user_add(char *uid, char *nick, char *user, char *host, char *realname, IRCServer *server)

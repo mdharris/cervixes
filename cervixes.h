@@ -50,7 +50,6 @@
 #define CAP_CLUSTER		0x08000
 #define CAP_ENCAP		0x10000
 #define CAP_TBURST		0x20000
-#define CAP_LAST		CAP_TBURST
 #define CERVIXES_CAPS		(CAP_CAP|CAP_QS|CAP_EX|CAP_IE|CAP_EOB|CAP_KLN|CAP_GLN|CAP_TS6|CAP_UNKLN|CAP_HOPS|CAP_CLUSTER|CAP_ENCAP)
 
 #define TOACT_NULL		0
@@ -85,7 +84,7 @@ struct _User
 	uint32_t umodes;
 	time_t ts;
 	IRCServer *s;
-	char id[?];
+	char id[10];		/* SID = 3, CID = 6 */
 	char nick[NICKLEN + 1];
 
 	struct _User *prev;
@@ -145,6 +144,8 @@ extern void clear_conf(void);
 /* irc.c */
 extern int init_irc(void);
 extern int cap_add(uint32_t idx, char *txt);
+extern int cap_rem(uint32_t idx);
+extern char *cap_getstr(uint32_t list);
 extern int user_add(char *uid, char *nick, char *user, char *host, char *realname, IRCServer *server);
 extern int server_add(char *sid, char *servername, char *description, IRCServer *uplink);
 extern int user_rem(char *uid, char *nick);
