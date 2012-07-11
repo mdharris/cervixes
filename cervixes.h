@@ -72,6 +72,7 @@ struct _Server
 	char id[4];
 	char name[SERVERLEN + 1];
 	uint32_t nclients;
+	struct _Server *uplink;
 
 	struct _Server *prev;
 	struct _Server *next;
@@ -136,6 +137,7 @@ typedef struct _Memo SVCMemo;
 
 /* conf.c */
 extern char *cxconf(char *search);
+extern char *cxmconf(char *ssearch, char *nsearch);
 extern int init_conf(char *file);
 extern void clear_conf(void);
 

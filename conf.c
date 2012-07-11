@@ -92,14 +92,39 @@ char *cxconf(char *search)
 	return((char *)NULL);
 }
 
+char *cxmconf(char *ssearch, char *nsearch)
+{
+	register Config *cptr;
+
+	if (!_conf_first) { return((char *)NULL); }
+	cptr = _conf_first;
+	while (cptr->next)
+	{
+		if ((strncmp(cptr->sect, ssearch, 128) == 0) && (strncmp(cptr->name, nsearch, 128) == 0))
+		{
+			return(cptr->data);
+		}
+		cptr = cptr->next;
+	}
+
+	return((char *)NULL);
+}
+
 int _hdlr_config(void *pc, const char *s, const char *n, const char *v)
 {
 	Config *n;
 	Config *cptr;
 
 	cptr = (Config *)NULL;
+
+	if (cxmconf(s, n))
+	{
+		/* don't bother with duplicate entries */
+		return(0);
+	}
+
 	n = (Config *)malloc(sizeof(Config));
-	if (!n) { return(-1); }
+	if (!n) { return(0); }
 	memset(n, 0, sizeof(Config));
 
 	_conf_global_idx++;
@@ -128,5 +153,5 @@ int _hdlr_config(void *pc, const char *s, const char *n, const char *v)
 		n->prev = cptr;
 	}
 
-	return(0);
+	return(1);
 }
