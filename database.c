@@ -25,6 +25,16 @@
 #include "inilib/inilib.h"
 #include "cervixes.h"
 
+SVCNick *_nick_first;
+SVCMemo *_memo_first;
+
+int init_database()
+{
+	_nick_first = (SVCNick *)NULL;
+	_memo_first = (SVCMemo *)NULL;
+
+}
+
 int database_wr()
 {
 

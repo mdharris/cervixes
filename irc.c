@@ -177,10 +177,21 @@ int user_add(char *uid, char *nick, char *user, char *host, char *realname, IRCS
 
 int user_rem(char *uid, char *nick)
 {
+	IRCUser *uptr;
+
 	if (!uid && !nick)
 	{
 		errno = EINVAL;
 		return(-1);
+	}
+
+	if (uid)
+	{
+		uptr = finduser_uid(uid);
+	}
+	else
+	{
+		uptr = finduser_nick(nick);
 	}
 }
 
@@ -191,9 +202,20 @@ int server_add(char *sid, char *servername, char *description, IRCServer *uplink
 
 int server_rem(char *sid, char *servername)
 {
+	IRCServer *sptr;
+
 	if (!sid && !servername)
 	{
 		errno = EINVAL;
 		return(-1);
+	}
+
+	if (sid)
+	{
+		sptr = findserver_sid(sid);
+	}
+	else
+	{
+		sptr = findserver_name(servername);
 	}
 }

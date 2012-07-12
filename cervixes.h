@@ -27,6 +27,10 @@
 #define STATUS_INITIALIZED	0x001
 #define STATUS_QUITTING		0x800
 
+#define CONN_UNREGISTERED	1
+#define CONN_SERVER		2
+#define CONN_USER		3
+
 #define UMODE_ADMIN		0x001
 #define UMODE_INVISIBLE		0x002
 #define UMODE_OPER		0x004
@@ -54,15 +58,28 @@
 
 #define TOACT_NULL		0
 #define TOACT_WRITE		1
-#define TOACT_		2
-#define TOACT_		3
+#define TOACT_KILL		2
+#define TOACT_SERVERCONN	3
 #define TOACT_		4
 #define TOACT_		5
 #define TOACT_		6
 #define TOACT_		7
-#define TOACT_TOINVALID		0
+#define TOACT_TOINVALID		8
 
 /* structs */
+
+struct _Connection
+{
+	uint8_t state;
+	uint32_t flags;
+
+	void *us;		/* IRCUser or IRCServer structure pointer */
+	MSocket *m;
+
+	struct _Connection *prev;
+	struct _Connection *next;
+};
+typedef struct _Connection aConn;
 
 struct _Server
 {
@@ -73,6 +90,7 @@ struct _Server
 	char name[SERVERLEN + 1];
 	uint32_t nclients;
 	struct _Server *uplink;
+	aConn *cptr;
 
 	struct _Server *prev;
 	struct _Server *next;
@@ -87,6 +105,7 @@ struct _User
 	IRCServer *s;
 	char id[10];		/* SID = 3, CID = 6 */
 	char nick[NICKLEN + 1];
+	aConn *cptr;
 
 	struct _User *prev;
 	struct _User *next;
@@ -96,6 +115,10 @@ typedef struct _User IRCUser;
 struct _Nick
 {
 	uint32_t flags;
+	time_t registered;
+	time_t lastseen;
+	int32_t killdelay;
+
 	IRCUser *l;
 
 	struct _Nick *prev;
@@ -140,6 +163,9 @@ extern char *cxconf(char *search);
 extern char *cxmconf(char *ssearch, char *nsearch);
 extern int init_conf(char *file);
 extern void clear_conf(void);
+
+/* database.c */
+int init_database(void);
 
 /* dl.c */
 

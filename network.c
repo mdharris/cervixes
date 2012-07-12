@@ -25,15 +25,20 @@
 #include <msocket.h>
 #include "cervixes.h"
 
+aConn *_conn_first;
+
+static int _cx_sockrecv(MSocket *m);
 static int _cx_sockerr(MSocket *m);
 static int _cx_sockaccept(MSocket *m);
+static aConn *_aconn_new(void);
 
 int init_network()
 {
 	MSocket *l;
+	char *localaddr;
 
-	event_set_log_callback(levlog);
-	cx_base = event_base_new();
+	_conn_first = (aConn *)NULL;
+
 	if (lms_init((config->debugmode > 0) ? 1 : 0) != 0)
 	{
 		return(-1);
@@ -41,21 +46,32 @@ int init_network()
 
 	l = lms_socket_create(LMSTYPE_LISTEN4);
 	if (!l) { fprintf(stdout, "lms_socket_create(): %s\n", strerror(errno)); return(-1); }
-	/* if you want to enable vhosting support, this would be set.
-        snprintf(l->localhost, LMS_LEN_V4ADDR, "127.0.0.1");
-	*/
-	l->localport = stringtoint(cxconf("myport"));
+	localaddr = cxmconf("listen", "vhost");
+	if (localaddr)
+	{
+	        snprintf(l->localhost, LMS_LEN_V4ADDR, "127.0.0.1");
+	}
+	l->localport = stringtoint(cxmconf("listen", "port"));
 	if (lms_socket_ilisten(l) < 0) { fprintf(stdout, "lms_socket_ilisten(): %s\n", strerror(errno)); return(-1); }
-	l->func_p = cx_sock;
+	l->func_p = cx_sockrecv;
 	l->func_a = cx_sockaccept;
 	if (lms_mux_addfd(l, -1, 0) < 0) { fprintf(stdout, "lms_mux_addfd(): %s\n", strerror(errno)); return(-1); }
 
 	return(0);
 }
 
+int _cx_sockrecv(MSocket *m)
+{
+
+}
+
 int _cx_sockerr(MSocket *m)
 {
+	aConn *aptr;
+
 	if (!m) { errno = EINVAL; return(-1); }
+
+	aptr = (aConn *)m->appdata;
 
 	/* fprintf(stdout, "[LMS] Disconnect from %s:%i\n", m->remotehost, m->remoteport); */
 	return(lms_socket_destroy(m));
@@ -63,6 +79,48 @@ int _cx_sockerr(MSocket *m)
 
 int _cx_sockaccept(MSocket *m)
 {
+	aConn *new;
+
+	new = _aconn_new();
+	if (!new)
+	{
+		lms_socket_close(m);
+		return(-1);
+	}
 	m->func_e = _cx_sockerr;
+	new->state = CONN_UNREGISTERED;
+	new->flags = 0;
+	new->m = m;
+	new->us = (void *)NULL;
+	m->appdata = (void *)new;
+
 	return(0);
+}
+
+aConn *_aconn_new()
+{
+	aConn *n;
+	aConn *aptr;
+
+	n = (aConn *)malloc(sizeof(aConn));
+	if (!n) { return((aConn *)NULL); }
+	memset(n, 0, sizeof(aConn));
+
+	if (!_conn_first)
+	{
+		_conn_first = n;
+		n->prev = (aConn *)NULL;
+		n->next = (aConn *)NULL;
+		return(n);
+	}
+	aptr = _conn_first;
+	while (aptr->next)
+	{
+		aptr = aptr->next;
+	}
+	aptr->next = n;
+	n->next = (aConn *)NULL;
+	n->prev = aptr;
+
+	return(n);
 }
