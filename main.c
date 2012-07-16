@@ -25,7 +25,7 @@
 #include <ctype.h>
 #include <pwstor.h>
 #include <signal.h>
-#include "inilib/inilib.h"
+#include "inilib/ini.h"
 #include <msocket.h>
 #include "cervixes.h"
 

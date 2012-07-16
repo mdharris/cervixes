@@ -19,6 +19,9 @@
 #ifndef _INCLUDED_CERVIXES_H
 # define _INCLUDED_CERVIXES_H
 
+#include <netinet/in.h>
+#include <msocket.h>
+
 /* defines */
 
 #define NICKLEN			16
@@ -61,9 +64,6 @@
 #define TOACT_KILL		2
 #define TOACT_SERVERCONN	3
 #define TOACT_		4
-#define TOACT_		5
-#define TOACT_		6
-#define TOACT_		7
 #define TOACT_TOINVALID		8
 
 /* structs */
@@ -180,7 +180,6 @@ extern int user_rem(char *uid, char *nick);
 extern int server_rem(char *sid, char *servername);
 
 /* main.c */
-extern char *capsstr[CAP_LAST + 1];
 extern uint16_t *status;
 
 /* network.c */

@@ -20,6 +20,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <unistd.h>
+#include <time.h>
 #include "cervixes.h"
 
 inline char *fmtdt(const char *style, size_t len)

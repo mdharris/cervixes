@@ -22,7 +22,6 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
-#include <msocket.h>
 #include "cervixes.h"
 
 aConn *_conn_first;
@@ -79,20 +78,25 @@ int _cx_sockerr(MSocket *m)
 
 int _cx_sockaccept(MSocket *m)
 {
-	aConn *new;
+	aConn *newa;
+	MSocket *mptr;
 
-	new = _aconn_new();
-	if (!new)
+	mptr = lms_socket_create(LMSTYPE_STREAM4);
+	newa = _aconn_new();
+	if (!mptr || !newa)
 	{
-		lms_socket_close(m);
+		if (mptr) { free(mptr); }
+		if (newa) { free(newa); }
 		return(-1);
 	}
+
+	lms_socket_iaccept(m, mptr);
 	m->func_e = _cx_sockerr;
-	new->state = CONN_UNREGISTERED;
-	new->flags = 0;
-	new->m = m;
-	new->us = (void *)NULL;
-	m->appdata = (void *)new;
+	newa->state = CONN_UNREGISTERED;
+	newa->flags = 0;
+	newa->m = mptr;
+	newa->us = (void *)NULL;
+	m->appdata = (void *)newa;
 
 	return(0);
 }
