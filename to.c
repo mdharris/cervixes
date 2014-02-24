@@ -1,5 +1,5 @@
 /*
-** Copyright (c) 2012, Matt Harris
+** Copyright (c) 2012-2014, Matt Harris
 ** All rights reserved.
 ** 
 ** Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -20,7 +20,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <errno.h>
 #include "cervixes.h"
 
 struct _Timeout
