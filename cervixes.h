@@ -1,5 +1,5 @@
 /*
-** Copyright (c) 2012, Matt Harris
+** Copyright (c) 2012-2014, Matt Harris
 ** All rights reserved.
 ** 
 ** Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -21,6 +21,7 @@
 
 #include <netinet/in.h>
 #include <msocket.h>
+#include <errno.h>
 
 /* defines */
 
@@ -38,6 +39,7 @@
 #define UMODE_INVISIBLE		0x002
 #define UMODE_OPER		0x004
 #define UMODE_WALLOPS		0x008
+#define UMODE_BOT		0x010
 
 #define CAP_CAP			0x00001
 #define CAP_QS			0x00002
@@ -146,14 +148,17 @@ typedef struct _Memo SVCMemo;
 #define IsAdmin(x)		((x)->umodes & UMODE_ADMIN)
 #define IsInvisible(x)		((x)->umodes & UMODE_INVISIBLE)
 #define IsWallops(x)		((x)->umodes & UMODE_WALLOPS)
+#define IsBot(x)		((x)->umodes & UMODE_BOT)
 #define SetOper(x)		((x)->umodes |= UMODE_OPER)
 #define SetAdmin(x)		((x)->umodes |= UMODE_ADMIN)
 #define SetInvisible(x)		((x)->umodes |= UMODE_INVISIBLE)
 #define SetWallops(x)		((x)->umodes |= UMODE_WALLOPS)
+#define SetBot(x)		((x)->umodes |= UMODE_BOT)
 #define ClearOper(x)		((x)->umodes &= ~UMODE_OPER)
 #define ClearAdmin(x)		((x)->umodes &= ~UMODE_ADMIN)
 #define ClearInvisible(x)	((x)->umodes &= ~UMODE_INVISIBLE)
 #define ClearWallops(x)		((x)->umodes &= ~UMODE_WALLOPS)
+#define ClearBot(x)		((x)->umodes &= ~UMODE_BOT)
 
 #define machdt()		fmtdt("%Y%m%d%H%M%S", 16);
 #define prtdt()			fmtdt("[%Y-%m-%d %H:%M:%S]", 24);

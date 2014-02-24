@@ -72,7 +72,7 @@ int to_add(uint8_t action, void *aptr, time_t cuando)
 	To *tptr;
 	To *new;
 
-	if (action >= TOACT_INVALID)
+	if (action >= TOACT_TOINVALID)
 	{
 		errno = EINVAL;
 		return(-1);
@@ -151,6 +151,7 @@ void _to_del(To *tptr)
 	if (_to_first == tptr)
 	{
 		if (tptr->next)
+		{
 			_to_first = tptr->next;
 		}
 		else

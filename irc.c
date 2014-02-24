@@ -1,5 +1,5 @@
 /*
-** Copyright (c) 2012, Matt Harris
+** Copyright (c) 2012-2014, Matt Harris
 ** All rights reserved.
 ** 
 ** Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -20,7 +20,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <unistd.h>
-#include <errno.h>
 #include <string.h>
 #include "cervixes.h"
 
@@ -36,7 +35,7 @@ typedef struct _Capab IRCCap;
 
 static IRCCap *_cap_first;
 static IRCUser *_user_first;
-static IRCServer *_user_first;
+static IRCServer *_server_first;
 
 static void _cap_rem(IRCCap *cptr);
 
@@ -72,7 +71,7 @@ int init_irc()
 int cap_add(uint32_t idx, char *txt)
 {
 	IRCCap *new;
-	register IRCCap *cptr;
+	IRCCap *cptr;
 
 	if (!txt)
 	{
@@ -100,6 +99,19 @@ int cap_add(uint32_t idx, char *txt)
 	{
 		_cap_first = new;
 	}
+	else
+	{
+		cptr = _cap_first;
+		while (cptr->next)
+		{
+			cptr = cptr->next;
+		}
+		cptr->next = new;
+		new->prev = cptr;
+		new->next = (IRCCap *)NULL;
+	}
+
+	return(0);
 }
 
 int cap_rem(uint32_t idx)
@@ -132,6 +144,7 @@ void _cap_rem(IRCCap *cptr)
 	if (_cap_first == cptr)
 	{
 		if (cptr->next)
+		{
 			_cap_first = cptr->next;
 		}
 		else

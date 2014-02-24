@@ -24,6 +24,7 @@
 #include <pwstor.h>
 #include "inilib/inilib.h"
 #include "cervixes.h"
+#include <mysql/mysql.h>
 
 SVCNick *_nick_first;
 SVCMemo *_memo_first;

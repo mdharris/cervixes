@@ -32,7 +32,7 @@ inline char *fmtdt(const char *style, size_t len)
 	dstr = (char *)malloc(len);
 	if (!dstr) { return((char *)NULL); }
 	memset(dstr, 0, len);
-	utime = (const time_t *)time((time_t)NULL);
+	utime = (const time_t *)time((time_t *)NULL);
 	strftime(dstr, len, style, localtime((const time_t *)&utime));
 	return(dstr);
 }

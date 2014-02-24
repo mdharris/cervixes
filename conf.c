@@ -20,7 +20,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <unistd.h>
-#include <errno.h>
 #include <string.h>
 #include "cervixes.h"
 #include "inilib/ini.h"

@@ -1,3 +1,3 @@
 Cervixes is an IRC services package designed for compatibility with the IRCASC network including
-the ratbox+ircasc, hybrid+ircasc, hybrid+rttc, and csircd+ircasc servers.  It is likely to also
+the ratbox+ircasc, hybrid+ircasc, and csircd+ircasc servers.  It is likely to also
 work with other TS6-based servers.  
