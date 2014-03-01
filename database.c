@@ -28,12 +28,38 @@
 
 SVCNick *_nick_first;
 SVCMemo *_memo_first;
+MYSQL *dbhandle;
 
 int init_database()
 {
+	my_bool reconnect;
+
 	_nick_first = (SVCNick *)NULL;
 	_memo_first = (SVCMemo *)NULL;
 
+	dbhandle = (MYSQL *)NULL;
+	mysql_library_init(0, (char **)NULL, (char **)NULL);
+	dbhandle = mysql_init((MYSQL *)NULL);
+
+	mysql_options(dbhandle, MYSQL_READ_DEFAULT_GROUP, "client");
+	reconnect = 1;
+	mysql_options(dbhandle, MYSQL_OPT_RECONNECT, &reconnect);
+	mysql_ssl_set(dbhandle, (char *)NULL, (char *)NULL, "ca.crt", (char *)NULL, "DHE-DSS-AES128-SHA");
+	errno = 0;
+	if (!mysql_real_connect(DB, NULL, NULL, NULL, "information_schema", 0, NULL, CLIENT_REMEMBER_OPTIONS|CLIENT_COMPRESS))
+	{
+		fprintf(stdout, "mysql_real_connect(information_schema): %s\n", mysql_error(DB));
+		mysql_close(dbhandle);
+		return(-1);
+	}
+}
+
+int deinit_database()
+{
+	if (!dbhandle) { return(-1); }
+	mysql_close(dbhandle);
+	mysql_library_end();
+	return(0);
 }
 
 int database_wr()
